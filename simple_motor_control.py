@@ -19,5 +19,7 @@ elbow.angle = 0
 time.sleep(.5)
 shoulder.angle = 45
 elbow.angle = 90
-
+time.sleep(.5)
+shoulder.angle = 0
+elbow.angle = 0
 
