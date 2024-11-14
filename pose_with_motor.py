@@ -2,7 +2,14 @@
 
 import mediapipe as mp    #MediaPipe Traking - Machine Learning Pipeline
 import numpy as np        #Operations
-import cv2                #Open CV
+import cv2#Open CV
+from picamera2 import Picamera2
+
+# Camera Setup
+picam2 = Picamera2()
+picam2.configure(picam2.create_video_configuration(main={"format": 'RGB888', "size": (640, 480)}))
+picam2.start()
+
 import board
 import busio
 import adafruit_pca9685
@@ -67,7 +74,7 @@ def calculate_angles(left_shoulder, right_shoulder, elbow, wrist):
         shoulder_angle = 180
 
 
-    # The shoulder angle will range between 0 and ~160 degrees, with 0 being arm at side
+    # The shoulder angle will range between 0 and 180 degrees, with 0 being arm at side
     # and 160 being the arm is straight up.
     
         
@@ -76,48 +83,51 @@ def calculate_angles(left_shoulder, right_shoulder, elbow, wrist):
 
 
 #Default Hardware Capture device
-cap = cv2.VideoCapture(0)                             
 
 #Initiate Holistic model
 with mp_holistic.Holistic(min_detection_confidence=0.5,
                           min_tracking_confidence=0.5) as holistic:
+    frame_count = -1
     #Open Camera
-    while cap.isOpened(): 
+    while True:
         #Read Camera Feed
-        ret, frame = cap.read()    
+        frame = picam2.capture_array()
         
-        #Recolor Feed
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+        frame_count += 1
         
-        #Make Detections
-        results = holistic.process(image)              
-        #print(results.pose_landmarks)
-        #face_landmarks, pose_landmarks, left_hand_landmarks, right_hand_landmarks
-        
-        #Recolor image back to BGR for rendering
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) 
+        # Only run pose detection model on every 5 frames (to reduce load for raspi)
+        if frame_count % 5 == 0:
+                
+            #Recolor Feed
+            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+            
+            #Make Detections
+            results = holistic.process(image)              
+            
+            #Recolor image back to BGR for rendering
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) 
 
-        
-        #Extract Landmarks
-        try:
-            landmarks = results.pose_landmarks.landmark
-            #Get Coordinates
-            left_shoulder = [landmarks[mp_holistic.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_holistic.PoseLandmark.LEFT_SHOULDER.value].y]
-            right_shoulder = [landmarks[mp_holistic.PoseLandmark.RIGHT_SHOULDER.value].x, landmarks[mp_holistic.PoseLandmark.RIGHT_SHOULDER.value].y]
-            elb = [landmarks[mp_holistic.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_holistic.PoseLandmark.LEFT_ELBOW.value].y]
-            wrist = [landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].y]
-            #Calculate angle
-            elbow_angle, shoulder_angle = calculate_angles(left_shoulder, right_shoulder, elb, wrist)
-            shoulder.angle = shoulder_angle
-            elbow.angle = elbow_angle
-            #Visualize angles
-            cv2.putText(image,str(elbow_angle),tuple(np.multiply(elbow,[640,480]).astype(int)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
-            cv2.putText(image,str(shoulder_angle),tuple(np.multiply(left_shoulder,[640,480]).astype(int)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
-            # print(landmarks)
-        except:
-            pass
+            
+            #Extract Landmarks
+            try:
+                landmarks = results.pose_landmarks.landmark
+                #Get Coordinates
+                left_shoulder = [landmarks[mp_holistic.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_holistic.PoseLandmark.LEFT_SHOULDER.value].y]
+                right_shoulder = [landmarks[mp_holistic.PoseLandmark.RIGHT_SHOULDER.value].x, landmarks[mp_holistic.PoseLandmark.RIGHT_SHOULDER.value].y]
+                elb = [landmarks[mp_holistic.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_holistic.PoseLandmark.LEFT_ELBOW.value].y]
+                wrist = [landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].y]
+                #Calculate angle
+                elbow_angle, shoulder_angle = calculate_angles(left_shoulder, right_shoulder, elb, wrist)
+                shoulder.angle = shoulder_angle
+                elbow.angle = elbow_angle
+                #Visualize angles
+                cv2.putText(image,str(elbow_angle),tuple(np.multiply(elb,[640,480]).astype(int)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+                cv2.putText(image,str(shoulder_angle),tuple(np.multiply(left_shoulder,[640,480]).astype(int)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+                # print(landmarks)
+            except:
+                pass
 
 
         # Draw pose detection
@@ -133,5 +143,5 @@ with mp_holistic.Holistic(min_detection_confidence=0.5,
         if cv2.waitKey(10) & 0xFF == ord('q'):         
             break
     
-cap.release()
+picam2.close()
 cv2.destroyAllWindows()
