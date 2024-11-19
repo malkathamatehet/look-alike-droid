@@ -68,14 +68,15 @@ def calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, righ
 
 
     # Find right shoulder angle NOT WORKING
-    radians = np.arctan2(r_elb[1]-right_s[1],r_elb[0]-right_s[0]) - np.arctan2(0,left_s[0]-right_s[0])
+    # radians = np.arctan2(0,left_s[0]-right_s[0]) - np.arctan2(r_elb[1]-right_s[1],r_elb[0]-right_s[0])
+    radians = np.arctan2(r_elb[1]-right_s[1],-r_elb[0]+right_s[0]) - np.arctan2(0,-left_s[0]+right_s[0])
     #convert to absolute value degrees
     r_shoulder_angle = np.abs((radians*180.0)/(np.pi)) - 90.0
     
-    if r_shoulder_angle < 0:
-        r_shoulder_angle = 0
-    if r_shoulder_angle > 180:
-        r_shoulder_angle = 180
+    # if r_shoulder_angle < 0:
+    #     r_shoulder_angle = 0
+    # if r_shoulder_angle > 180:
+    #     r_shoulder_angle = 180
     
         
     return l_elbow_angle, l_shoulder_angle, r_elbow_angle, r_shoulder_angle
@@ -117,7 +118,8 @@ with mp_holistic.Holistic(min_detection_confidence=0.5,
             right_wrist = [landmarks[mp_holistic.PoseLandmark.RIGHT_WRIST.value].x, landmarks[mp_holistic.PoseLandmark.RIGHT_WRIST.value].y]
             #Calculate angle
             l_elbow_angle, l_shoulder_angle, r_elbow_angle, r_shoulder_angle = calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, right_elbow, right_wrist)
-            print(l_shoulder_angle)
+            print(np.arctan2(0, right_shoulder[0] - left_shoulder[0]))
+            print(np.arctan2(0,left_shoulder[0]-right_shoulder[0]))
             #Visualize angles
             cv2.putText(image,str(l_elbow_angle),tuple(np.multiply(left_elbow,[640,480]).astype(int)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
