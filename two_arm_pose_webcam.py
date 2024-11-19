@@ -67,7 +67,7 @@ def calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, righ
         r_elbow_angle = 360-r_elbow_angle
 
 
-    # Find right shoulder angle NOT WORKING
+    # Find right shoulder angle
     # radians = np.arctan2(0,left_s[0]-right_s[0]) - np.arctan2(r_elb[1]-right_s[1],r_elb[0]-right_s[0])
     radians = np.arctan2(r_elb[1]-right_s[1],-r_elb[0]+right_s[0]) - np.arctan2(0,-left_s[0]+right_s[0])
     #convert to absolute value degrees
