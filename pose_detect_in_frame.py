@@ -112,7 +112,8 @@ with mp_holistic.Holistic(min_detection_confidence=0.5,
             if current_time - last_print_time >= 4:
                 last_print_time = current_time
 
-            
+
+                # Print visibilities for debugging if needed
                 # Extract relevant landmarks
                 # left_shoulder = results.pose_landmarks.landmark[11]
                 # right_shoulder = results.pose_landmarks.landmark[12]
