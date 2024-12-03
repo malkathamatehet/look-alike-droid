@@ -113,14 +113,8 @@ with mp_holistic.Holistic(min_detection_confidence=0.5,
             wrist = [landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].x,
                      landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].y,
                      landmarks[mp_holistic.PoseLandmark.LEFT_WRIST.value].z]
-            #Calculate angle
-            # elbow_angle, shoulder_angle = calculate_angles(left_shoulder, right_shoulder, elbow, wrist)
-            #Visualize xy angles
-            # cv2.putText(image,str(elbow_angle),tuple(np.multiply(elbow,[640,480]).astype(int)),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
-            # cv2.putText(image,str(shoulder_angle),tuple(np.multiply(left_shoulder,[640,480]).astype(int)),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 
+            
             ls_xy_angle, ls_xz_angle, ls_yz_angle, elbow_angle = calculate_angles(left_shoulder, right_shoulder, elbow, wrist)
 
             ## Display angles
