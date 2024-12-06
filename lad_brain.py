@@ -15,8 +15,14 @@ picam2 = Picamera2()
 picam2.configure(picam2.create_video_configuration(main={"format": 'RGB888', "size": (640, 480)}))
 picam2.start()
 
-# Servo Hat Setup
+# Driver Setup
 import board
+
+# LED Setup
+import neopixel
+pos_leds = neopixel.NeoPixel(board.D18, 30) 
+
+# Servo Hat Setup
 import busio
 import adafruit_pca9685
 i2c = busio.I2C(board.SCL, board.SDA)
