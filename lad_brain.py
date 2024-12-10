@@ -33,14 +33,14 @@ kit = ServoKit(channels=16)
 
 # Define motors
 ls_xy_motor = kit.servo[0]
-ls_xz_motor = kit.servo[0]
-ls_yz_motor = kit.servo[0]
-le_motor = kit.servo[0]
+ls_xz_motor = kit.servo[3]
+ls_yz_motor = kit.servo[2]
+le_motor = kit.servo[1]
 
-rs_xy_motor = kit.servo[0]
-rs_xz_motor = kit.servo[0]
-rs_yz_motor = kit.servo[0]
-re_motor = kit.servo[0]
+rs_xy_motor = kit.servo[5]
+rs_xz_motor = kit.servo[6]
+rs_yz_motor = kit.servo[7]
+re_motor = kit.servo[4]
 
 # Set all angles to 0 - resting/reset position
 ls_xy_motor.angle = 0
