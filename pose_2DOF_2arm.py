@@ -55,7 +55,10 @@ def calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, righ
     # Calculate left shoulder xz angle
     radians = np.arctan2(l_elb_pos[2]-ls_pos[2],l_elb_pos[0]-ls_pos[0])
     #convert to degrees and modify to have normal movement range be 0 to 180
-    angles["ls_xz"] = -1 * (radians*180.0)/(np.pi) + 90
+    angles["ls_xz"] = -1 * (radians*180.0)/(np.pi)
+
+    if angles["ls_xz"] < 0:
+        angles["ls_xz"] = 0
 
     # Calculate left shoulder yz angle
     radians = np.arctan2((l_wri_pos[1]-l_elb_pos[1]), -1 * (l_wri_pos[2]-l_elb_pos[2]))
@@ -70,7 +73,7 @@ def calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, righ
     if l_elbow_angle > 180.0:
         l_elbow_angle = 360-l_elbow_angle
 
-    angles["l_elbow"] = l_elbow_angle
+    angles["l_elbow"] = 180 - l_elbow_angle
 
     # Calculate right shoulder xy angle
     radians = np.arctan2(r_elb_pos[1]-rs_pos[1], -1 * (r_elb_pos[0]-rs_pos[0])) - np.arctan2(0,ls_pos[0]-rs_pos[0])
@@ -85,7 +88,7 @@ def calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, righ
     # Calculate right shoulder yz angle
     radians = np.arctan2((r_wri_pos[1]-r_elb_pos[1]), -1 * (r_wri_pos[2]-r_elb_pos[2]))
     #convert to degrees and to be from 0 to 180
-    angles["rs_yz"] = -1 * (radians*180.0)/(np.pi) + 90
+    angles["rs_yz"] = 180 - (-1 * (radians*180.0)/(np.pi) + 90)
 
     # Calculate right elbow angle
     radians = np.arctan2(r_wri_pos[1]-r_elb_pos[1],r_wri_pos[0]-r_elb_pos[0]) - np.arctan2(rs_pos[1]-r_elb_pos[1],rs_pos[0]-r_elb_pos[0])
@@ -95,7 +98,7 @@ def calculate_angles(left_shoulder, right_shoulder, left_elbow, left_wrist, righ
     if r_elbow_angle > 180.0:
         r_elbow_angle = 360-r_elbow_angle
 
-    angles["r_elbow"] = r_elbow_angle
+    angles["r_elbow"] = 180 - r_elbow_angle
 
 
     # Make sure all angles fall with [0, 180], the range of our motors
@@ -193,8 +196,8 @@ with mp_holistic.Holistic(min_detection_confidence=0.5,
             #             cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 
             # Display right elbow angle
-            # cv2.putText(image,str(round(angles["r_elbow"])),tuple(np.multiply(right_elbow[0:2],[640,480]).astype(int)),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+            cv2.putText(image,str(round(angles["r_elbow"])),tuple(np.multiply(right_elbow[0:2],[640,480]).astype(int)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 
         except:
             pass

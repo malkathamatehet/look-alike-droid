@@ -49,8 +49,8 @@ ls_yz_motor.angle = 0
 le_motor.angle = 0
 
 rs_xy_motor.angle = 0
-rs_xz_motor.angle = 0
-rs_yz_motor.angle = 0
+# rs_xz_motor.angle = 0
+rs_yz_motor.angle = 180
 re_motor.angle = 0
 
 def calculate_angles(landmarks):
@@ -97,7 +97,10 @@ def calculate_angles(landmarks):
     # Calculate left shoulder xz angle
     ls_xz_radians = np.arctan2(l_elb_pos[2]-ls_pos[2],l_elb_pos[0]-ls_pos[0])
     # Convert to degrees and modify to have normal movement range be 0 to 180
-    angles["ls_xz"] = -1 * (ls_xz_radians*180.0)/(np.pi) + 90
+    angles["ls_xz"] = -1 * (ls_xz_radians*180.0)/(np.pi)
+
+    if angles["ls_xz"] < 0:
+        angles["ls_xz"] = 0
 
     # Calculate left shoulder yz angle
     ls_yz_radians = np.arctan2((l_wri_pos[1]-l_elb_pos[1]), -1 * (l_wri_pos[2]-l_elb_pos[2]))
@@ -107,7 +110,7 @@ def calculate_angles(landmarks):
     # Calculate left elbow angle
     le_radians = np.arctan2(l_wri_pos[1]-l_elb_pos[1],l_wri_pos[0]-l_elb_pos[0]) - np.arctan2(ls_pos[1]-l_elb_pos[1],ls_pos[0]-l_elb_pos[0])
     # Convert to degrees
-    angles["l_elbow"] = np.abs((le_radians*180.0)/(np.pi))
+    angles["l_elbow"] = 180 - np.abs((le_radians*180.0)/(np.pi))
 
     # Calculate right shoulder xy angle
     rs_xy_radians = np.arctan2(r_elb_pos[1]-rs_pos[1], -1 * (r_elb_pos[0]-rs_pos[0])) - np.arctan2(0,ls_pos[0]-rs_pos[0])
@@ -122,12 +125,12 @@ def calculate_angles(landmarks):
     # Calculate right shoulder yz angle
     rs_yz_radians = np.arctan2((r_wri_pos[1]-r_elb_pos[1]), -1 * (r_wri_pos[2]-r_elb_pos[2]))
     # Convert to degrees and modify to have normal movement range be 0 to 180
-    angles["rs_yz"] = -1 * (rs_yz_radians*180.0)/(np.pi) + 90
+    angles["rs_yz"] = 180 - (-1 * (rs_yz_radians*180.0)/(np.pi) + 90)
 
     # Calculate right elbow angle
     radians = np.arctan2(r_wri_pos[1]-r_elb_pos[1],r_wri_pos[0]-r_elb_pos[0]) - np.arctan2(rs_pos[1]-r_elb_pos[1],rs_pos[0]-r_elb_pos[0])
     # Convert to degrees
-    angles["r_elbow"] = np.abs((radians*180.0)/(np.pi))
+    angles["r_elbow"] = 180 - np.abs((radians*180.0)/(np.pi))
 
     # Make sure all angles fall with [0, 180], the range of our motors
     for key, angle in angles.items():
