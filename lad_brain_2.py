@@ -48,8 +48,8 @@ ls_xz_motor.angle = 0
 ls_yz_motor.angle = 0
 le_motor.angle = 0
 
-rs_xy_motor.angle = 0
-# rs_xz_motor.angle = 0
+rs_xy_motor.angle = 180
+rs_xz_motor.angle = 0
 rs_yz_motor.angle = 180
 re_motor.angle = 0
 
@@ -115,7 +115,7 @@ def calculate_angles(landmarks):
     # Calculate right shoulder xy angle
     rs_xy_radians = np.arctan2(r_elb_pos[1]-rs_pos[1], -1 * (r_elb_pos[0]-rs_pos[0])) - np.arctan2(0,ls_pos[0]-rs_pos[0])
     # Convert to degrees and modify to have normal movement range be 0 to 180
-    angles["rs_xy"] = -1 * (rs_xy_radians*180.0)/(np.pi) + 90.0
+    angles["rs_xy"] = 180-(-1 * (rs_xy_radians*180.0)/(np.pi) + 90.0)
 
     # Calculate right shoulder xz angle
     rs_xz_radians = np.arctan2(r_elb_pos[2]-rs_pos[2], -1 * (r_elb_pos[0]-rs_pos[0]))
@@ -130,7 +130,7 @@ def calculate_angles(landmarks):
     # Calculate right elbow angle
     radians = np.arctan2(r_wri_pos[1]-r_elb_pos[1],r_wri_pos[0]-r_elb_pos[0]) - np.arctan2(rs_pos[1]-r_elb_pos[1],rs_pos[0]-r_elb_pos[0])
     # Convert to degrees
-    angles["r_elbow"] = 180 - np.abs((radians*180.0)/(np.pi))
+    angles["r_elbow"] = np.abs((radians*180.0)/(np.pi))
 
     # Make sure all angles fall with [0, 180], the range of our motors
     for key, angle in angles.items():
@@ -154,6 +154,8 @@ with mp_pose.Pose(min_detection_confidence=0.5,
         # Read camera feed
         frame = picam2.capture_array()
         
+        frame = cv2.flip(frame, -1)
+        
         frame_count += 1
 
         # Only run pose detection model on every 5 frames (to reduce load for raspi)
@@ -170,14 +172,17 @@ with mp_pose.Pose(min_detection_confidence=0.5,
 
             # Declare user position boolean for LED usage
             user_in_position = False
+            
+            try:
+                landmark_pos = results.pose_landmarks.landmark[11:17]
 
-            landmark_pos = results.pose_landmarks.landmark[11:17]
-
-            # Check that all landmarks have a visibility over 0.9
-            user_in_position = all(
-                landmark.visibility > 0.9
-                for landmark in landmark_pos
-            )
+                # Check that all landmarks have a visibility over 0.9
+                user_in_position = all(
+                    landmark.visibility > 0.9
+                    for landmark in landmark_pos
+                )
+            except:
+                pass
                 
             # User is in position 
             if user_in_position:
@@ -211,25 +216,27 @@ with mp_pose.Pose(min_detection_confidence=0.5,
 
                 # Move motors to correct angles
                 ls_xy_motor.angle = angles["ls_xy"]
-                ls_xz_motor.angle = angles["ls_xz"]
-                ls_yz_motor.angle = angles["ls_yz"]
+                #ls_xz_motor.angle = angles["ls_xz"]
+                #ls_yz_motor.angle = angles["ls_yz"]
                 le_motor.angle = angles["l_elbow"]
 
                 rs_xy_motor.angle = angles["rs_xy"]
-                rs_xz_motor.angle = angles["rs_xz"]
-                rs_yz_motor.angle = angles["rs_yz"]
+                #rs_xz_motor.angle = angles["rs_xz"]
+                #rs_yz_motor.angle = angles["rs_yz"]
                 re_motor.angle = angles["r_elbow"]
+
 
             else:
                 ls_xy_motor.angle = 0
-                ls_xz_motor.angle = 0
-                ls_yz_motor.angle = 0
+                #ls_xz_motor.angle = 0
+                #ls_yz_motor.angle = 0
                 le_motor.angle = 0
 
-                rs_xy_motor.angle = 0
+                rs_xy_motor.angle = 180
                 # rs_xz_motor.angle = 0
-                rs_yz_motor.angle = 180
-                re_motor.angle = 0
+                #rs_yz_motor.angle = 180
+                re_motor.angle = 180
+                
                 
                 #leds red
 
@@ -244,12 +251,3 @@ with mp_pose.Pose(min_detection_confidence=0.5,
             break
 picam2.close()
 cv2.destroyAllWindows()
-
-
-
-
-
-
-
-
-
