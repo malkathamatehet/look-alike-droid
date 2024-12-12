@@ -171,65 +171,77 @@ with mp_pose.Pose(min_detection_confidence=0.5,
             # Declare user position boolean for LED usage
             user_in_position = False
 
-             # Check if relevant landmarks are detected 
-            if results.pose_landmarks:
+            landmark_pos = results.pose_landmarks.landmark[11:17]
+
+            # Check that all landmarks have a visibility over 0.9
+            user_in_position = all(
+                landmark.visibility > 0.9
+                for landmark in landmark_pos
+            )
                 
-                # Select only relevant landmarks
-                landmarks = results.pose_landmarks.landmark[11:17]
+            # User is in position 
+            if user_in_position:
+                #leds green
+                landmarks = results.pose_landmarks.landmark
 
-                # Check that all landmarks have a visibility over 0.9
-                user_in_position = all(
-                    landmark.visibility > 0.9
-                    for landmark in landmarks
-                )
+                # Get landmark values
+                left_shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+                            landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y,
+                            landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].z]
+                right_shoulder = [landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                                landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y,
+                                landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].z]
+                left_elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
+                        landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y,
+                        landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].z]
+                left_wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x,
+                        landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y,
+                        landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].z]
+                right_elbow = [landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
+                        landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y,
+                        landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].z]
+                right_wrist = [landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
+                        landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y,
+                        landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].z]
+                
+                landmark_list = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
 
-                # User is in position 
-                if user_in_position:
-                    #leds green
+                # Calculate the angles
+                angles = calculate_angles(landmark_list)
 
-                    # Get landmark values
-                    left_shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                             landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y,
-                             landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].z]
-                    right_shoulder = [landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-                                    landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y,
-                                    landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].z]
-                    left_elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
-                            landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y,
-                            landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].z]
-                    left_wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x,
-                            landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y,
-                            landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].z]
-                    right_elbow = [landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
-                            landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y,
-                            landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].z]
-                    right_wrist = [landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
-                            landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y,
-                            landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].z]
-                    
-                    landmark_list = [left_shoulder, right_shoulder, left_elbow, right_elbow, left_wrist, right_wrist]
+                # Move motors to correct angles
+                ls_xy_motor.angle = angles["ls_xy"]
+                ls_xz_motor.angle = angles["ls_xz"]
+                ls_yz_motor.angle = angles["ls_yz"]
+                le_motor.angle = angles["l_elbow"]
 
-                    # Calculate the angles
-                    angles = calculate_angles(landmark_list)
+                rs_xy_motor.angle = angles["rs_xy"]
+                rs_xz_motor.angle = angles["rs_xz"]
+                rs_yz_motor.angle = angles["rs_yz"]
+                re_motor.angle = angles["r_elbow"]
 
-                    # Move motors to correct angles
-                    ls_xy_motor.angle = angles["ls_xy"]
-                    ls_xz_motor.angle = angles["ls_xz"]
-                    ls_yz_motor.angle = angles["ls_yz"]
-                    le_motor.angle = angles["l_elbow"]
+            else:
+                ls_xy_motor.angle = 0
+                ls_xz_motor.angle = 0
+                ls_yz_motor.angle = 0
+                le_motor.angle = 0
 
-                    rs_xy_motor.angle = angles["rs_xy"]
-                    rs_xz_motor.angle = angles["rs_xz"]
-                    rs_yz_motor.angle = angles["rs_yz"]
-                    re_motor.angle = angles["r_elbow"]
+                rs_xy_motor.angle = 0
+                # rs_xz_motor.angle = 0
+                rs_yz_motor.angle = 180
+                re_motor.angle = 0
+                
+                #leds red
 
-                else:
-                    print("nope")
-                    #leds red
-
-            #Hit "q" to kill camera
-            if cv2.waitKey(10) & 0xFF == ord('q'):         
-                break
+        mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS,
+                                    mp_drawing.DrawingSpec(color = (245,117,66),thickness = 2, circle_radius = 4),
+                                    mp_drawing.DrawingSpec(color = (245,66,230),thickness = 2, circle_radius = 2))
+        
+        #Render Video
+        cv2.imshow('Holistic Model Detection',image) 
+        #Hit "q" to kill camera
+        if cv2.waitKey(10) & 0xFF == ord('q'):         
+            break
 picam2.close()
 cv2.destroyAllWindows()
 
