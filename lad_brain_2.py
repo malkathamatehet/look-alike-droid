@@ -110,7 +110,13 @@ def calculate_angles(landmarks):
     # Calculate left elbow angle
     le_radians = np.arctan2(l_wri_pos[1]-l_elb_pos[1],l_wri_pos[0]-l_elb_pos[0]) - np.arctan2(ls_pos[1]-l_elb_pos[1],ls_pos[0]-l_elb_pos[0])
     # Convert to degrees
-    angles["l_elbow"] = 180 - np.abs((le_radians*180.0)/(np.pi))
+    angles["l_elbow"] = np.abs((le_radians*180.0)/(np.pi))
+
+    if angles["l_elbow"] > 180.0:
+        angles["l_elbow"] = 360 - angles["l_elbow"]
+
+    angles["l_elbow"] = 180 - angles["l_elbow"]
+
 
     # Calculate right shoulder xy angle
     rs_xy_radians = np.arctan2(r_elb_pos[1]-rs_pos[1], -1 * (r_elb_pos[0]-rs_pos[0])) - np.arctan2(0,ls_pos[0]-rs_pos[0])
