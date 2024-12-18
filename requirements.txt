@@ -1,0 +1,10 @@
+adafruit_pca9685==1.0.1
+board==1.0
+imutils==0.5.4
+mediapipe==0.10.20
+neopixel==0.0.1
+numpy==2.2.0
+opencv_contrib_python==4.10.0.84
+opencv_python==4.10.0.84
+picamera==1.13
+picamera2==0.3.23
