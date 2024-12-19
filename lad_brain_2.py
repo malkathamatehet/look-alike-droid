@@ -20,7 +20,7 @@ import board
 
 # LED Setup
 import neopixel
-pos_leds = neopixel.NeoPixel(board.D18, 30) 
+pos_leds = neopixel.NeoPixel(board.D12, 8) 
 
 # Servo Hat Setup
 import busio
@@ -44,14 +44,14 @@ re_motor = kit.servo[4]
 
 # Set all angles to 0 - resting/reset position
 ls_xy_motor.angle = 0
-ls_xz_motor.angle = 0
+ls_xz_motor.angle = 90
 ls_yz_motor.angle = 0
 le_motor.angle = 0
 
 rs_xy_motor.angle = 180
-rs_xz_motor.angle = 0
+rs_xz_motor.angle = 120
 rs_yz_motor.angle = 180
-re_motor.angle = 0
+re_motor.angle = 180
 
 def calculate_angles(landmarks):
     """
@@ -138,6 +138,11 @@ def calculate_angles(landmarks):
     # Convert to degrees
     angles["r_elbow"] = np.abs((radians*180.0)/(np.pi))
 
+    if angles["r_elbow"] > 180.0:
+        angles["r_elbow"] = 360 - angles["r_elbow"]
+
+    angles["r_elbow"] = 180 - angles["r_elbow"]
+
     # Make sure all angles fall with [0, 180], the range of our motors
     for key, angle in angles.items():
         if angle < 0:
@@ -193,6 +198,8 @@ with mp_pose.Pose(min_detection_confidence=0.5,
             # User is in position 
             if user_in_position:
                 #leds green
+                pos_leds.fill((0, 255, 0))
+
                 landmarks = results.pose_landmarks.landmark
 
                 # Get landmark values
@@ -242,9 +249,9 @@ with mp_pose.Pose(min_detection_confidence=0.5,
                 # rs_xz_motor.angle = 0
                 #rs_yz_motor.angle = 180
                 re_motor.angle = 180
-                
-                
+
                 #leds red
+                pos_leds.fill((255, 0, 0))
 
         mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
                                     mp_drawing.DrawingSpec(color = (245,117,66),thickness = 2, circle_radius = 4),
